@@ -3,7 +3,7 @@
 > **用自然语言，绘制专业图表**
 
 ## 在线网站
-进入在线网站直接使用：https://smart-excalidraw.aizhi.site/
+进入在线网站直接使用：https://excalidraw.innoc.me/
 
 🚀🚀🚀 限时福利
 
