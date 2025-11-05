@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callLLM } from '@/lib/llm-client';
 import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from '@/lib/prompts';
+import { decryptConfig } from '@/lib/crypto-utils';
 
 /**
  * Get environment variable configuration on the server side
@@ -36,7 +37,7 @@ function getServerEnvConfig() {
  */
 export async function POST(request) {
   try {
-    const { config: clientConfig, userInput, chartType, useEnvConfig } = await request.json();
+    const { config: encryptedClientConfig, userInput, chartType, useEnvConfig } = await request.json();
 
     if (!userInput) {
       return NextResponse.json(
@@ -44,6 +45,9 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    // Decrypt client config if provided
+    const clientConfig = encryptedClientConfig ? decryptConfig(encryptedClientConfig) : null;
 
     // Determine which config to use based on user preference
     let config;
@@ -54,9 +58,9 @@ export async function POST(request) {
       config = envConfig;
       console.log('[Server] Using environment configuration (user preference)');
     } else if (clientConfig) {
-      // Use client config
+      // Use client config (now decrypted)
       config = clientConfig;
-      console.log('[Server] Using client configuration (user preference)');
+      console.log('[Server] Using client configuration (user preference, decrypted)');
     } else if (envConfig) {
       // Fallback to env config if available
       config = envConfig;

@@ -8,6 +8,7 @@ import ConfigManager from '@/components/ConfigManager';
 import Notification from '@/components/Notification';
 import { getConfig, isConfigValid } from '@/lib/config';
 import { optimizeExcalidrawCode } from '@/lib/optimizeArrows';
+import { encryptConfig } from '@/lib/crypto-utils';
 
 // Dynamically import ExcalidrawCanvas to avoid SSR issues
 const ExcalidrawCanvas = dynamic(() => import('@/components/ExcalidrawCanvas'), {
@@ -197,12 +198,15 @@ export default function Home() {
     setJsonError(null); // Clear previous JSON errors
 
     try {
+      // Encrypt client config before sending to server
+      const encryptedConfig = shouldUseClientConfig && config ? encryptConfig(config) : null;
+
       // Call generate API with streaming
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: shouldUseClientConfig ? config : null, // Only send client config if user chose to use it
+          config: encryptedConfig, // Send encrypted config
           userInput: userMessage,
           chartType,
           useEnvConfig: shouldUseEnvConfig, // Tell server user's preference
