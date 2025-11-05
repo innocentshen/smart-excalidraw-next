@@ -102,10 +102,6 @@ Next.js 16 · React 19 · Excalidraw · Tailwind CSS 4 · Monaco Editor
 
 MIT License
 
-## 联系作者
-微信号： liujuntaoljt 
-
-<img width="200"  alt="微信图片_20251103110224_44_85" src="https://github.com/user-attachments/assets/6d8c4da2-af27-4213-b929-0d47fa51e9b5" />
 
 ---
 
