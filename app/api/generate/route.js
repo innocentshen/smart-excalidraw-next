@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callLLM } from '@/lib/llm-client';
 import { SYSTEM_PROMPT, USER_PROMPT_TEMPLATE } from '@/lib/prompts';
+import { decryptConfig } from '@/lib/crypto-utils';
 
 /**
  * Get environment variable configuration on the server side
@@ -36,7 +37,7 @@ function getServerEnvConfig() {
  */
 export async function POST(request) {
   try {
-    const { config: clientConfig, userInput, chartType } = await request.json();
+    const { config: encryptedClientConfig, userInput, chartType, useEnvConfig } = await request.json();
 
     if (!userInput) {
       return NextResponse.json(
@@ -45,17 +46,32 @@ export async function POST(request) {
       );
     }
 
-    // Priority: environment variables > client config
-    const config = getServerEnvConfig() || clientConfig;
+    // Decrypt client config if provided
+    const clientConfig = encryptedClientConfig ? decryptConfig(encryptedClientConfig) : null;
 
-    if (!config) {
+    // Determine which config to use based on user preference
+    let config;
+    const envConfig = getServerEnvConfig();
+
+    if (useEnvConfig && envConfig) {
+      // User prefers environment config and it's available
+      config = envConfig;
+      console.log('[Server] Using environment configuration (user preference)');
+    } else if (clientConfig) {
+      // Use client config (now decrypted)
+      config = clientConfig;
+      console.log('[Server] Using client configuration (user preference, decrypted)');
+    } else if (envConfig) {
+      // Fallback to env config if available
+      config = envConfig;
+      console.log('[Server] Using environment configuration (fallback)');
+    } else {
+      // No config available
       return NextResponse.json(
         { error: 'No LLM configuration available. Please configure environment variables or provide client config.' },
         { status: 400 }
       );
     }
-
-    console.log('[Server] Using config:', config.name || 'client config');
 
     // Build messages array
     let userMessage;
